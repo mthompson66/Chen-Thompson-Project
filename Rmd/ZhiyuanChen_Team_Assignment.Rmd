@@ -1,0 +1,80 @@
+---
+title: "CO2_TSA"
+author: "Zhiyuan Chen"
+date: "2022-11-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Set up
+```{r, message=FALSE}
+#1
+getwd()
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("lubridate")
+library(lubridate)
+#install.packages("zoo")
+library(zoo)
+#install.packages("trend")
+library(trend)
+#install.packages("Kendall")
+library(Kendall)
+library(dplyr)
+mytheme <- theme_classic(base_size = 14) +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "top")
+theme_set(mytheme)
+#2
+CO2_allCountries <- read.csv("D:/Rfiles/EDA-Fall2022/Team_Project/Data/Raw/CO2_cleaned_restructured.csv",
+                    stringsAsFactors = TRUE)
+```
+
+##Data Wrangling
+```{r}
+CO2_US <- 
+  CO2_allCountries %>%
+  filter(Code == "US")%>%
+  select(Country, Year, CO2.emission..Tons.)%>%
+  mutate(Date = paste0(1,"-",1,"-",Year))
+CO2_US$Date <- as.Date(CO2_US$Date, format = "%m-%d-%Y")
+```
+##visualize
+```{r}
+CO2_data_plot <-
+ggplot(CO2_US, aes(x = Date, y = CO2.emission..Tons.)) +
+  geom_point() +
+  geom_line() +
+  labs(title = paste("CO2 emissions in the US"),
+       y="CO2.emission(Tons)",
+       x="Date")+
+  geom_smooth(method = lm, se = FALSE)
+print(CO2_data_plot)
+```
+##TSA
+```{r}
+CO2_US_ts <- ts(CO2_US$CO2.emission..Tons., start = c())
+```
+
