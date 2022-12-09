@@ -1,0 +1,226 @@
+---
+title: "1_DataVisualization"
+author: "Michelle Thompson"
+date: "2022-11-18"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+```
+
+### Import your datasets
+
+```{r Importing data}
+
+# Relative file path (friendly for users regardless of machine)
+CO2_cleaned_restructured <- read.csv("~/Chen-Thompson-Project/Data/Raw/CO2_cleaned_restructured.csv", stringsAsFactors = TRUE)
+CO2_cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/CO2_cleaned.csv", stringsAsFactors = TRUE)
+QoL_Classes <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_Classes.csv", stringsAsFactors = TRUE)
+QoL_Cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_cleaned.csv", stringsAsFactors = TRUE)
+
+```
+
+
+## EXPLORE YOUR DATASET
+
+```{r Exploring data}
+View(CO2_cleaned)
+View(CO2_cleaned_restructured)
+View(QoL_Classes)
+View(QoL_Cleaned)
+
+
+class(CO2_cleaned)
+class(CO2_cleaned_restructured)
+class(QoL_Cleaned)
+class(QoL_Classes)
+
+
+colnames(CO2_cleaned)
+colnames(CO2_cleaned_restructured)
+colnames(QoL_Cleaned)
+colnames(QoL_Classes)
+
+str(CO2_cleaned)
+str(CO2_cleaned_restructured)
+str(QoL_Cleaned)
+str(QoL_Classes)
+
+dim(CO2_cleaned)
+dim(CO2_cleaned_restructured)
+dim(QoL_Classes)
+dim(QoL_Cleaned)
+
+length(CO2_cleaned)
+length(CO2_cleaned_restructured)
+length(QoL_Classes)
+length(QoL_Cleaned)
+  #if we want to merge we should use co2 restructered and qol cleaned versions
+
+head(CO2_cleaned)
+head(CO2_cleaned_restructured)
+head(QoL_Classes)
+head(QoL_Cleaned)
+
+
+summary(CO2_cleaned)  
+summary(CO2_cleaned_restructured)
+summary(QoL_Classes)
+summary(QoL_Cleaned)
+
+```
+
+```{r finding NAs}
+
+which(is.na(CO2_cleaned), arr.ind=TRUE)
+which(is.na(CO2_cleaned_restructured), arr.ind=TRUE)
+which(is.na(QoL_Classes), arr.ind=TRUE)
+which(is.na(QoL_Cleaned), arr.ind=TRUE)
+    #No NAs
+
+```
+
+STOP:
+
+  To do: merge data, trim it down, make intial graphs and stats
+
+```{r}
+#Wrangling data
+#Select relevant columns from co2 and Qol datasets
+library(tidyverse)
+CO2_cleaned_restructured <- CO2_cleaned_restructured %>% 
+        rename("Percent_of_world" = "X..of.World",
+               "CO2_tons" = "CO2.emission..Tons.",
+               "Population.2022"= "Population.2022.",
+               "Density"= "Density.km2.")
+
+CO2_select <- select(CO2_cleaned_restructured, X, Country, Year, Population.2022, Area, Percent_of_world, Density, CO2_tons, Value)
+
+QoL_select <- select(QoL_Cleaned, Country, TotalQuality.of.life.100..)
+  ##what year is QOL dataset in
+
+##did not include ranks but I can add them subsequently
+
+#select co2 by year
+CO2_select_2019 <- 
+  CO2_select %>%
+  filter(Year %in% c("2019"))
+  
+#save as processed files
+write.csv(CO2_select, row.names = FALSE, file = "~/Chen-Thompson-Project/Data/Processed/CO2_select.csv")
+
+write.csv(QoL_select, row.names = FALSE, file = "~/Chen-Thompson-Project/Data/Processed/QoL_select.csv")
+
+write.csv(CO2_select_2019, row.names = FALSE, file = "~/Chen-Thompson-Project/Data/Processed/CO2_select_2019.csv")
+
+```
+
+
+```{r}
+#Combine CO2 2019 and QoL datasets
+CO2_QoL<- merge(CO2_select_2019, QoL_select, by = "Country")
+write.csv(CO2_QoL, row.names = FALSE, file = "~/Chen-Thompson-Project/Data/Processed/CO2_QoL.csv")
+
+colnames(CO2_QoL)
+#Plot initial findings
+  #Co2 by Country
+CO2_Country <- ggplot(CO2_QoL, aes(Country, CO2_tons)) +
+    geom_bar(stat="identity", na.rm = TRUE) +
+    ggtitle("CO2 Emissions (tons) by Country (2019)") +
+    xlab("Country") + ylab("CO2 Emissions (tons")
+ 
+ CO2_Country
+ 
+  #CO2 and QoL 
+CO2_QoL_relationship <- ggplot(CO2_QoL, aes(CO2_tons, TotalQuality.of.life.100..,)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Quality of Life and CO2 Emissions") +
+    xlab("CO2 Emissions") + ylab("Quality of Life")
+
+ CO2_QoL_relationship
+ 
+ CO2_pop_relationship <- ggplot(CO2_QoL, aes(Population.2022, CO2_tons,)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Population and CO2 Emissions") +
+    xlab("Population") + ylab("CO2 Emissions (tons)")
+ 
+  CO2_pop_relationship
+CO2_QoL$Density<- as.character(CO2_QoL$Density)
+CO2_QoL$Density = substr(CO2_QoL$Density,1,nchar(CO2_QoL$Density)-4)
+as.numeric(gsub(",", "", CO2_QoL$Density, fixed = TRUE))
+write.csv(CO2_QoL, row.names = FALSE, file = "~/Chen-Thompson-Project/Data/Processed/CO2_QoL.csv")
+  CO2_popden_relationship <- ggplot(CO2_QoL, aes(Density, CO2_tons)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Population Density and CO2 Emissions") +
+    xlab("Population Density (/km2)") + ylab("CO2 Emissions (tons)")
+ 
+  CO2_popden_relationship
+```
+
+#developed vs developing 
+```{r, fig.height = 3, fig.width = 4}
+#
+CO2_QOL_DEV <- read.csv("~/Chen-Thompson-Project/Data/Processed/CO2_QoL_dev.csv", stringsAsFactors = TRUE)
+
+CO2_QOL_DEV$Density = substr(CO2_QOL_DEV$Density,1,nchar(CO2_QoL$Density))
+CO2_QOL_DEV$Density <- as.numeric(gsub(",","",CO2_QOL_DEV$Density))
+CO2_QOL_DEV$Density<- as.numeric(CO2_QOL_DEV$Density)
+
+```
+
+
+## Generate summary tables
+12. Use the split-apply-combine strategy to generate a summary data frame. Data should be grouped by site, month, and year. Generate the mean AQI values for ozone and PM2.5 for each group. Then, add a pipe to remove instances where a month and year are not available (u.
+
+```{r}
+#summary tables
+
+Summary<- CO2_QOL_DEV %>%
+  group_by(CO2_QOL_DEV$DevStatus)%>%
+  summarise(meanCO2= mean(CO2_tons))
+
+Summary
+#graph
+
+CO2_QOL_DEV_box <- ggplot(CO2_QOL_DEV, aes(DevStatus, CO2_tons,)) +
+    geom_boxplot(outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE)+
+    ggtitle("Development Status and CO2 Emissions") +
+    xlab("Development Status") + ylab("CO2 Emissions")
+CO2_QOL_DEV_box
+
+#remove outliers
+outliers <- boxplot(CO2_QOL_DEV$DevStatus, plot=FALSE)$out
+
+
+CO2_QOL_DEV_noO <- ggplot(CO2_QOL_DEV, aes(DevStatus, CO2_tons,)) +
+    geom_boxplot(outlier.shape=NA)+ 
+  scale_y_continuous(limits = c(0.1, 1000000000))+
+    ggtitle("Development Status and CO2 Emissions") +
+    xlab("Development Status") + ylab("CO2 Emissions")
+  
+    CO2_QOL_DEV_noO
+```
+```{r}
+#glms
+
+CO2.pop.glm<- lm(data = CO2_QOL_DEV, CO2_tons ~ Population.2022 + Density)
+summary(CO2.pop.glm)
+
+cor.test(CO2_QOL_DEV$CO2_tons, CO2_QOL_DEV$Population.2022)
+cor.test(CO2_QOL_DEV$CO2_tons, CO2_QOL_DEV$Density)
+  #population p<0.05, density not
+
+CO2.dev.glm <- lm(data = CO2_QOL_DEV,CO2_tons ~DevStatus)
+summary(CO2.dev.glm)
+
+CO2.QOL.glm <- lm(data = CO2_QOL_DEV, TotalQuality.of.life.100.. ~ CO2_tons)
+summary(CO2.QOL.glm)
+```
+
+
+
