@@ -21,6 +21,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
 library(tidyverse)
+library(lubridate)
+library(trend)
+library(Kendall)
 ```
 
 ### Import your datasets
@@ -235,5 +238,29 @@ CO2.QOL.glm <- lm(data = CO2_QOL_DEV, TotalQuality.of.life.100.. ~ CO2_tons)
 summary(CO2.QOL.glm)
 ```
 
+##TSA of CO2 Data in the US
 
+```{r echo=FALSE}
+CO2_US <- 
+  CO2_cleaned %>%
+  filter(Code == "US")%>%
+  select(Country, Year, CO2.emission..Tons.)%>%
+  mutate(Date = paste0(1,"-",1,"-",Year))
+CO2_US$Date <- as.Date(CO2_US$Date, format = "%m-%d-%Y")
 
+CO2_US_ts <- ts(CO2_US$CO2.emission..Tons., start = c(1750), frequency=1)
+CO2_data_trend <- MannKendall(CO2_US_ts)
+CO2_data_trend
+summary(CO2_data_trend)
+mk.test(CO2_US$CO2.emission..Tons., continuity = TRUE)
+
+CO2_data_plot <-
+ggplot(CO2_US, aes(x = Date, y = CO2.emission..Tons.)) +
+  geom_point() +
+  geom_line() +
+  labs(title = paste("CO2 emissions in the US"),
+       y="CO2.emission(Tons)",
+       x="Date")+
+  geom_smooth(method = lm, se = FALSE)
+print(CO2_data_plot)
+```
