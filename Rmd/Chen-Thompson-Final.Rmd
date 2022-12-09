@@ -35,6 +35,10 @@ QoL_Cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_cleaned.csv", stri
       Contains rationale for dataset of choice
       Contains one or more questions of an appropriate scope
       for the projec
+Since the industrial revolution and mass production, CO2 emissions have changed a lot during the past two centuries. With the continual increasing CO2 emissions, global warming and other effects make many countries and people at a risk of lowering quality of life. 
+To study the relationship between CO2 emissions and quality of life, we choose a dataset that provides the C02 levels and life qualities of countries around the world per year, which is perfectly fit for our research topic.
+To begin with, we propose a question that does population size, density and development status impact CO2 emissions in worldwide(about 120 countries). Then, we try to see what is the CO2 emission trend in the US since 1750. Finally, we want to find out whether do CO2 emissions affect quality of life in worldwide.
+
 
 
 \newpage
@@ -43,14 +47,16 @@ QoL_Cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_cleaned.csv", stri
     ####Describes source and content of data
     Details the wrangling process from raw to processed data
     Contains a table summarizing the dataset structure
-
+    
+The dataset we use comes from The World Banks Atlas Method which uses individual countries data reported to the United Nations Framework Convention on Climate Change (UNFCCC) and other international sources. It constains information as followed: Country (Title), Code(Country), Year, CO2 emissions, Population, Area, Density, Quality of life and so on.
+To get the processed data that we want, first, we input two datasets that contain information about CO2 emissions and quality of life respectively. Then, we only select the columns that we needed in year 2019 and combine these two datasets to make a clean one. For the time series analysis, we only select the CO2 emissions data in the US from 1750 to 2020 and make a new "date" column.
 
 \newpage
 
 # Exploratory Analysis 
     ####Flow between text and visualizations is cohesive
     Relevant exploratory information is visualized
-
+To begin with, let's take a initial look at the dataset. In the first graph, we can see that the US had the largest CO2 emissions, with China being the second largest and Germany being the third largest. Then, we can find that there is no clear trends in relationships between CO2 emissions and population. Similarly, we cannot see any trend between CO2 emissions and population density. Finally, when we take a look at the graph about CO2 emissions and quality of life, there is again no trends.
 
 \newpage
 
@@ -71,6 +77,33 @@ QoL_Cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_cleaned.csv", stri
 
 
 
+```{r echo=FALSE}
+#TSA of CO2 Data in the US
+CO2_US <- 
+  CO2_cleaned %>%
+  filter(Code == "US")%>%
+  select(Country, Year, CO2.emission..Tons.)%>%
+  mutate(Date = paste0(1,"-",1,"-",Year))
+CO2_US$Date <- as.Date(CO2_US$Date, format = "%m-%d-%Y")
+
+CO2_US_ts <- ts(CO2_US$CO2.emission..Tons., start = c(1750), frequency=1)
+CO2_data_trend <- MannKendall(CO2_US_ts)
+CO2_data_trend
+summary(CO2_data_trend)
+mk.test(CO2_US$CO2.emission..Tons., continuity = TRUE)
+
+CO2_data_plot <-
+ggplot(CO2_US, aes(x = Date, y = CO2.emission..Tons.)) +
+  geom_point() +
+  geom_line() +
+  labs(title = paste("CO2 emissions in the US"),
+       y="CO2.emission(Tons)",
+       x="Date")+
+  geom_smooth(method = lm, se = FALSE)
+print(CO2_data_plot)
+```
+
+After we run the MannKendall test, we find out the z score is 23.789 and the p-value is 2.2e-16, which is much smaller than the alpha level. As a result, we could reject the null hypothesis that from 1750 to 2020, there is no CO2 emission difference in the US. And we can conclude that during the past two centuries, there is an upward trend in CO2 emissions in the US.
 \newpage
 
 # Summary and Conclusions
