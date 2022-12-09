@@ -75,6 +75,12 @@ print(CO2_data_plot)
 ```
 ##TSA
 ```{r}
-CO2_US_ts <- ts(CO2_US$CO2.emission..Tons., start = c())
+CO2_US_ts <- ts(CO2_US$CO2.emission..Tons., start = c(1750), frequency=1)
+#CO2_US_decomp <- stl(CO2_US_ts,s.window = "periodic")
+#plot(CO2_US_decomp)
+CO2_data_trend <- MannKendall(CO2_US_ts)
+CO2_data_trend
+summary(CO2_data_trend)
+mk.test(CO2_US$CO2.emission..Tons., continuity = TRUE)
 ```
 
