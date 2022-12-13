@@ -1,0 +1,444 @@
+---
+title: "CO2 & Quality of Life Final Project"
+author: "Zhiyuan Chen and Michelle Thompson"
+date: "Fall 2022"
+output: pdf_document
+geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
+toc: true
+---
+
+
+\listoftables 
+Table 1: Dataset Information
+\listoffigures
+Figure 1: 2019 CO2 emissions (in tons) for each country
+
+Figure 2: 2019 CO2 emissions (in tons) and Quality of Life for each country
+
+Figure 3: 2019 CO2 emissions (in tons) by country and population size
+
+Figure 4: 2019 CO2 emissions (in tons) and population density by country
+
+Figure 5: 2019 CO2 emissions (in tons) by development status
+
+Figure 6: 2019 CO2 emissions (in tons) by development status with outliers removed
+
+Figure 7: 2019 CO2 emissions (in tons) by population size
+
+Figure 8: 2019 CO2 emissions (in tons) by population density
+
+Figure 9: 2019 CO2 emissions (in tons) by development status
+
+Figure 10: Quality of life by 2019 CO2 emissions (in tons)
+
+Figure 11: Quality of life by development status
+
+Figure 12: CO2 emissions (in tons) in the US From 1750 to 2020
+\newpage
+
+#Setup
+```{r include=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+```
+
+```{r Setup}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+# Set your working directory
+setwd("/home/guest/Chen-Thompson-Project")
+
+# Load your packages
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(trend)
+library(Kendall)
+library(lubridate)
+# Set your ggplot theme
+mytheme <- theme_classic(base_size = 14) +
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "top")
+theme_set(mytheme)
+
+# Load your datasets
+CO2_cleaned <- read.csv("~/Chen-Thompson-Project/Data/Raw/CO2_cleaned.csv", 
+                        stringsAsFactors = TRUE)
+QoL_Classes <- read.csv("~/Chen-Thompson-Project/Data/Raw/QoL_Classes.csv", 
+                        stringsAsFactors = TRUE)
+
+```
+
+
+# Rationale and Research Questions
+Since the industrial revolution and mass production, CO2 emissions have changed a lot during the past two centuries. According to existing research, emissions of CO2 and other greenhouse gases are influenced by the sizes and density of settlements, the sizes of households, and the ages of householders(Cohen, 2010). And the continually increasing CO2 emissions, global warming, and other effects make many countries and people at risk of lowering their quality of life. However, some scholars have noted that carbon emissions and life satisfaction can be decoupled, or can have a non-linear relationship(Li and Chen, 2022). Sulkowski and White (2015) found that carbon emissions are not correlated perfectly with either development or happiness.
+
+To study the relationship between CO2 emissions and quality of life, we choose a dataset that provides the C02 levels and life qualities of countries around the world per year, which is a perfect fit for our research topic. Moreover, to find out the specific effects of population size, population density, and development status on CO2 emissions, we choose a dataset that provides the information that we need. Last but not least, to discover whether have US emissions changed significantly since the industrial revolution, we choose a dataset that contains US emissions since 1750.
+
+To begin with, we propose a question that does population size, density, and development status impact CO2 emissions worldwide(about 120 countries)? Then, we want to find out whether CO2 emissions affect the quality of life worldwide. Finally, we try to see what is the CO2 emission trend in the US since 1750.
+
+
+#Data Exploration
+```{r Exploring Data, echo = T, results = 'hide'}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+#View(CO2_cleaned)
+#View(QoL_Classes)
+
+class(CO2_cleaned)
+class(QoL_Classes)
+
+colnames(CO2_cleaned)
+colnames(QoL_Classes)
+
+str(CO2_cleaned)
+str(QoL_Classes)
+
+dim(CO2_cleaned)
+dim(QoL_Classes)
+
+length(CO2_cleaned)
+length(QoL_Classes)
+
+head(CO2_cleaned)
+head(QoL_Classes)
+
+summary(CO2_cleaned)  
+summary(QoL_Classes)
+
+#checking for NAs
+which(is.na(CO2_cleaned), arr.ind=TRUE)
+which(is.na(QoL_Classes), arr.ind=TRUE)
+    #No NAs
+
+#Wrangling data
+#Select relevant columns from co2 and Qol datasets
+library(tidyverse)
+CO2_cleaned <- CO2_cleaned %>% 
+        rename("Percent_of_world" = "X..of.World",
+               "CO2_tons" = "CO2.emission..Tons.",
+               "Population.2022"= "Population.2022.",
+               "Density"= "Density.km2.")
+
+CO2_select <- select(CO2_cleaned, Country, Year, Population.2022, Density, 
+                     CO2_tons)
+
+QoL_select <- select(QoL_Classes, Country, TotalQuality.of.life.100..)
+
+  ##what year is QOL dataset in
+
+#select co2 by year
+CO2_select19 <- 
+  CO2_select %>%
+  filter(Year %in% c("2019"))
+  
+#save as processed files
+write.csv(CO2_select, file = 
+            "~/Chen-Thompson-Project/Data/Processed/CO2_select.csv")
+
+write.csv(QoL_select, file =
+            "~/Chen-Thompson-Project/Data/Processed/QoL_select.csv")
+
+write.csv(CO2_select19, file = 
+            "~/Chen-Thompson-Project/Data/Processed/CO2_select19.csv")
+
+#Combine CO2 2019 and QoL datasets
+CO2_QoL<- merge(CO2_select19, QoL_select, by = "Country")
+write.csv(CO2_QoL, 
+          file =  "~/Chen-Thompson-Project/Data/Processed/CO2_QoL.csv")
+
+colnames(CO2_QoL)
+
+#developed vs developing 
+CO2_QOL_DEV <- 
+  read.csv("~/Chen-Thompson-Project/Data/Processed/CO2_QoL_dev.csv", 
+           stringsAsFactors = TRUE)
+CO2_QOL_DEV$Density<- as.numeric(CO2_QOL_DEV$Density)
+class(CO2_QOL_DEV$Density)
+```
+\newpage
+
+# Dataset Information
+The dataset comes from The World Banks Atlas Method which uses individual countries' data reported to the United Nations Framework Convention on Climate Change (UNFCCC) and other international sources. It contains information as followed: Country (Title), Code(Country), Year, CO2 emissions, Population, Area, Density, Quality of life, and so on.
+
+
+Table 1: Dataset Information
+
+
+| Variables | Units | Ranges | Mean | Data Source                           |
+|-----------|-------|--------|------|---------------------------------------|
+| Country   | NA    | NA     | NA.  | QOL cleaned & CO2 cleaned restructured|
+| Year      | year  | 2019   | 2019 | CO2 cleaned restructured              |
+| Population| number of people in country| 222382-1425887337 | 57273796 | CO2 cleaned restructured|
+|Density| #/km^2 | 2-8,416 | 2,3850.81 | CO2 cleaned restructured |
+|CO2_tons| tons of CO2| 0- 4.12E+11| 6536577 | CO2 cleaned restructured |
+|Total Quality of Life| % | 30-76 | 54.516 | QOL cleaned |
+
+Total quality of life= 0.15(Stability) + 0.20(Rights) + 0.15(Health) + 0.10(Safety) + .15(Climate) + 0.15(Costs) + 0.10(Popularity)
+
+#Data Wrangling
+
+To begin data wrangling, we explored the data by looking at the summaries (summary), dimensions (dim), column names (colnames), lengths (length), classes (class), and structures (str) of both CSV files. Then we checked for NAs using the “which” function. We then renamed the CO2 cleaned names to remove unnecessary periods using “rename”. We selected the desired columns for both datasets and assigned them to new datasets using select. We then filtered the CO2 cleaned data by the desired year (2019) and assigned it to a a new dataset. CO2 select, QOL select,  and the CO2 select 2019 dataset were saved as CSVs. Then we combined the CO2 select 2019 and QOL select datasets by merging by country name. Finally, we added a dataset with development status as a categorical variable and generated summary tables. 
+
+# Exploratory Analysis 
+To begin with, let's take a initial look at the dataset. In Figure 1, we can see that the US had the largest CO2 emissions, with China being the second largest and Germany being the third largest. Then, in Figure 2, we can find that there is no clear trends in relationships between CO2 emissions and population. Similarly, in Figure 3, we cannot see any trend between CO2 emissions and population density,too. When we take a look at the graph about CO2 emissions and quality of life in Figure 4, there is again no trends that we can observe. The development boxplots show that there are not significant differences between the 3 development statuses' emissions, but they have different means. Outliers were removed for this visualization but not in analysis. 
+
+
+```{r Exploratory Analysis}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+#Plot initial findings
+  #Co2 by Country
+CO2_Country <- ggplot(CO2_QoL, aes(Country, CO2_tons)) +
+    geom_bar(stat="identity", na.rm = TRUE) +
+    ggtitle("CO2 Emissions (tons) by Country (2019)") +
+    xlab("Country") + ylab("CO2 Emissions (tons") + 
+  labs(caption= "Figure 1: 2019 CO2 emissions (in tons) for each country")
+ 
+ CO2_Country
+ 
+  #CO2 and QoL 
+CO2_QoL_relationship <- 
+  ggplot(CO2_QoL, aes(CO2_tons, TotalQuality.of.life.100..,)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Quality of Life and CO2 Emissions") +
+    xlab("CO2 Emissions") + ylab("Quality of Life")+
+  labs(caption= 
+         "Figure 2: 2019 CO2 emissions 
+       (in tons) and Quality of Life for each country")
+
+ CO2_QoL_relationship
+ 
+ CO2_pop_relationship <- 
+   ggplot(CO2_QoL, aes(Population.2022, CO2_tons,)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Population and CO2 Emissions") +
+    xlab("Population") + ylab("CO2 Emissions (tons)")+
+   labs(caption= "Figure 3: 2019 CO2 emissions 
+        (in tons) by country and population size")
+ 
+  CO2_pop_relationship
+CO2_QoL$Density<- as.character(CO2_QoL$Density)
+CO2_QoL$Density = substr(CO2_QoL$Density,1,nchar(CO2_QoL$Density)-4)
+as.numeric(gsub(",", "", CO2_QoL$Density, fixed = TRUE))
+
+write.csv(CO2_QoL, file = "~/Chen-Thompson-Project/Data/Processed/CO2_QoL.csv")
+
+  CO2_popden_relationship <- 
+    ggplot(CO2_QoL, aes(Density, CO2_tons)) +
+    geom_point(stat="identity", na.rm = TRUE) +
+    ggtitle("Population Density and CO2 Emissions") +
+    xlab("Population Density (/km2)") + ylab("CO2 Emissions (tons)")+
+    labs(caption= 
+           "Figure 4: 2019 CO2 emissions (in tons) 
+         and population density by country")
+ 
+  CO2_popden_relationship
+
+#summary tables
+
+Summary<- CO2_QOL_DEV %>%
+  group_by(CO2_QOL_DEV$DevStatus)%>%
+  summarise(meanCO2= mean(CO2_tons))
+
+Summary
+
+#graph
+CO2_QOL_DEV_box <- 
+  ggplot(CO2_QOL_DEV, aes(DevStatus, CO2_tons,)) +
+    geom_boxplot(outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE)+
+    ggtitle("Development Status and CO2 Emissions") +
+    xlab("Development Status") + ylab("CO2 Emissions") + 
+  labs(caption= "Figure 5: 2019 CO2 emissions (in tons) by development status")
+CO2_QOL_DEV_box
+
+#remove outliers
+CO2_QOL_DEV_noO <- 
+  ggplot(CO2_QOL_DEV, aes(DevStatus, CO2_tons, color= DevStatus)) +
+    geom_boxplot(outlier.shape=NA)+ 
+  scale_y_continuous(limits = c(0.1, 1000000000))+
+    ggtitle("Development Status and CO2 Emissions") +
+    xlab("Development Status") + ylab("CO2 Emissions")+
+  labs(caption= 
+         "Figure 6: 2019 CO2 emissions 
+       (in tons) by development status with outliers removed")
+  
+    CO2_QOL_DEV_noO
+
+```
+
+## Question 1: Does population affect CO2 emissions? 
+
+  #a. Does population size significantly affect CO2 emissions?
+
+  # b. Does population density significantly affect CO2 emissions? 
+
+## Question 2: Does CO2 emissions singifncalty affect quality of life?
+
+## Question 3: Have US emissions changed significntly since 1750?
+ 
+# Analysis
+```{r Analysis: Population Size on CO2}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+#GLMs
+
+CO2.pop.glm<- lm(data = CO2_QOL_DEV, CO2_tons ~ Population.2022)
+summary(CO2.pop.glm)
+
+cor.test(CO2_QOL_DEV$CO2_tons, CO2_QOL_DEV$Population.2022)
+
+# Plot the regression
+co2bypop <- 
+  ggplot(CO2_QOL_DEV, aes(x = CO2_tons, y = Population.2022)) +
+  geom_point() +
+  labs(caption= "Figure 7: 2019 CO2 emissions
+       (in tons) by population size") + 
+  geom_smooth(method=lm)
+
+print(co2bypop) 
+
+```
+
+#Population Size and CO2
+The low p value (1.59e-09) of the population and CO2 GLM indicates that population size does affect CO2 emissions. The r^2 value (0.259) means that population size accounts for 26% of the variability in CO2 emissions. Because of the small p-value, we reject the null hypothesis for Question 1a and accept the alternate hypothesis, that population size does affect CO2 emissions. The correlation test shows that the variables are significantly correlated (p-value= 1.593e-09, correlation coefficient= 0.5089). The effect size (120.41) means that for every 1-unit increase in population, CO2 increases by 120.41 units.
+
+```{r Population Density on CO2}
+
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+co2bypop1 <- 
+  ggplot(CO2_QOL_DEV, aes(x = CO2_tons, y = Density)) +
+  geom_point() +
+  labs(caption= "Figure 8: 2019 CO2 emissions 
+       (in tons) by population density")+ geom_smooth(method=lm)
+print(co2bypop1)
+
+CO2.pop1.glm<- lm(data = CO2_QOL_DEV, CO2_tons ~ Density)
+summary(CO2.pop1.glm)
+
+cor.test(CO2_QOL_DEV$CO2_tons, CO2_QOL_DEV$Density)
+  #population p<0.05, density p>0.05
+
+```
+
+#Population Density and CO2
+In the same GLM, population density had a large p-value (0.73). The p-value is greater than the alpha of 0.05 so we can conclude that population density does not significantly affect CO2 emissions. The high p-value means that we accept the null hypothesis for Question 1b that population density does not affect CO2 emissions. The correlation test shows that the variables are not significantly correlated (p-value= 0.73, correlation coefficient= -0.031). The effect size (120.41) means that for every 1-unit increase in population, CO2 increases by 120.41 units. The effect size (-1711285) means that for every 1-unit increase in population density, CO2 decreases -1711285 units.
+
+
+```{r Development Status on CO2}
+
+CO2.dev.glm <- lm(data = CO2_QOL_DEV,CO2_tons ~DevStatus)
+summary(CO2.dev.glm)
+
+co2bydev <- 
+  ggplot(CO2_QOL_DEV, aes(x = CO2_tons, y = DevStatus)) +
+  geom_boxplot() +
+  labs(caption= "Figure 9: 2019 CO2 emissions 
+       (in tons) by development status")+ geom_smooth(method=lm)
+print(co2bydev)
+```
+#Development Status and CO2
+Because it is a categorical variable, the GLM of development status and CO2 has separate p-values for each category of development. Developing (the least “developed” nations according to the UN) had a p-value slightly less than 0.05 (p=0.03), meaning it is statistically significant and the category has an impact on CO2 emissions as compared to the base factor of "developed". Economies in transition (EIT- or in between developed and developing) had a large p-value (0.1383), meaning it is not statistically significant as compared to developed. Developed countries had a very small p-value (0.000674), meaning there is a strong significance and that being a developed country has a large impact on CO2 emissions. The R^2 value (0.04), indicates that the development status of a country only accounted for 4% of the total variance in CO2 emissions.
+
+```{r CO2 on Quality of Life}
+
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+CO2.QOL.glm <- lm(data = CO2_QOL_DEV, TotalQuality.of.life.100.. ~ CO2_tons)
+summary(CO2.QOL.glm)
+
+qolbyco2 <- 
+  ggplot(CO2_QOL_DEV, aes(x = TotalQuality.of.life.100.., y = CO2_tons)) +
+  geom_point() +
+  labs(caption= "Figure 10: Quality of life by 2019 CO2 
+       emissions (in tons)")+ 
+  geom_smooth(method=lm)
+print(qolbyco2)
+
+cor.test(CO2_QOL_DEV$TotalQuality.of.life.100.., CO2_QOL_DEV$CO2_tons)
+```
+CO2 and Quality of Life
+The GLM evaluating the relationship between CO2 and QOL had a p-value less than the alpha value of 0.05 (p= 0.0344). This means that CO2 is slightly significant and has an impact on quality of life. Of course, there are many factors that go into quality of life, and CO2 may be acting as a proxy for another measurement like development or economic activity. The R^2 value (0.03617) means that CO2 accounts for 3.6% of the variability in quality of life. From these results, we reject the null hypothesis for Question 2 and accept the alternative, that CO2 emissions impact quality of life. The effect size (4.547e-11) means that for every 1-unit increase in CO2, quality of life increases by  4.547e-11 units. The correlation test shows that CO2 and quality of life are significantly correlated (p-value= 0.0344, correlation coefficient= 0.19). 
+
+```{r Development Status on Quality of Life}
+DEV.QOL.glm <- lm(data = CO2_QOL_DEV, TotalQuality.of.life.100.. ~ DevStatus)
+summary(DEV.QOL.glm)
+
+qolbydev <- 
+  ggplot(CO2_QOL_DEV, aes(x = TotalQuality.of.life.100.., y = DevStatus)) +
+  geom_boxplot() +
+  labs(caption= "Figure 11:
+       Quality of life by development status") + 
+  geom_smooth(method=lm)
+print(qolbydev)
+```
+#Development Status and Quality of Life
+To see if the CO2 results may be misleading, we also did a GLM on development status and quality of life. These results were far more significant. Compared to the base factor of "developed", both developing and EIT were statistically significant (p-values= 2e-16, 1.88e-09, respectively). This means that developing and EIT statuses had a strong impact on quality of life compared to developed. The r^2 value (0.509) means development status accounts for almost 51% of the variability within quality of life measurements.  
+
+```{r Development Status & CO2 on Quality of life}
+
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=45),tidy=TRUE)
+
+DEV.CO2.QOL.glm <- lm(data = CO2_QOL_DEV, 
+                      TotalQuality.of.life.100.. ~ DevStatus+ CO2_tons)
+summary(DEV.CO2.QOL.glm)
+```
+#Development Status + CO2 on Quality of Life
+When including both development status and CO2 emissions in one GLM, all effects of CO2 are removed. Development status is the only significant variable (p-values of <2e-16, <2e-16, and 4.47e-09 for developed, developing and EIT respectively), and CO2 emissions becomes completely insignificant (p-value= 0.444). Based on these results, CO2 itself is not significant and it only affects quality of life when it is a proxy for development status.
+
+```{r Time Series Analysis}
+
+#TSA of CO2 Data in the US
+CO2_US <- 
+  CO2_cleaned %>%
+  filter(Code == "US")%>%
+  select(Country, Year, CO2_tons)%>%
+  mutate(Date = paste0(1,"-",1,"-",Year))
+CO2_US$Date <- as.Date(CO2_US$Date, format = "%m-%d-%Y")
+
+CO2_US_ts <- ts(CO2_US$CO2_tons, start = c(1750), frequency=1)
+CO2_data_trend <- MannKendall(CO2_US_ts)
+CO2_data_trend
+summary(CO2_data_trend)
+mk.test(CO2_US$CO2_tons, continuity = TRUE)
+
+CO2_data_plot <-
+ggplot(CO2_US, aes(x = Date, y = CO2_tons)) +
+  geom_point() +
+  geom_line() +
+  labs(title = paste("CO2 emissions in the US"),
+       y="CO2.emission(Tons)",
+       x="Date")+
+  labs(caption= "Figure 12: CO2 emissions 
+       (in tons) in the US From 1750 to 2020")+
+  geom_smooth(method = lm, se = FALSE)
+print(CO2_data_plot)
+```
+#Time Series Analysis
+After we run the Mann-Kendall test, we find out the z score is (23.789) and the p-value is much smaller than the alpha level (2.2e-16). As a result, we could reject the null hypothesis that from 1750 to 2020, there is no CO2 emission difference in the US. And we can conclude that during the past two centuries, there is an upward trend in CO2 emissions in the US. And we can confirm this result by checking Figure 12. In addition, as Figure 12 shows, between 1850 and 1960, the US experienced a constant growth of emissions, due largely to industrialization and population growth. Since the 1960s, US emissions increased more quickly. The faster increase might be attributed to more reliance on private cars and accelerating suburbanization.
+\newpage
+
+
+# Summary and Conclusions
+
+From the different methods of analysis, we can make several conclusions about CO2 and quality of life. Firstly, there is a significant relationship between the amount of CO2 emissions and the population size of a country. There is not a significant relationship between population density and CO2 emissions. To answer our first research question, population size affects co2 emissions while density does not. Secondly, there is a statistically significant relationship between CO2 emissions and quality of life when it is evaluated alone. However, when including the effect of development on the quality of life, the significance disappears. We can conclude that the answer to research question 2 is no, CO2 does not significantly affect quality of life, but development status does. Finally, after doing the time series analysis, we can conclude that there is an upward CO2 emission trend in the US from 1750 to 2020. In addition, since the 1960s, due largely to more reliance on private cars and accelerating suburbanization, US emissions increased more quickly.
+
+# References
+
+Cohen J. E. (2010). Population and climate change. Proceedings of the American Philosophical Society, 154(2), 158–182.
+
+Li, J., & Chen, F. (2022). The Impacts of Carbon Emissions and Energy Consumption on Life Satisfaction: Evidence From China. Frontiers in Environmental Science, 10. https://doi.org/10.3389/fenvs.2022.901472
+
+Sulkowski, A., and White, D. S. (2015). A Happiness Kuznets Curve? Using Model-Based Cluster Analysis to Group Countries Based on Happiness, Development, Income, and Carbon Emissions. Environ. Dev. Sustain. 18 (4), 1095–1111. doi:10.1007/s10668-015-9689-z
+
