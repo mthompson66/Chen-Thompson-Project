@@ -38,7 +38,7 @@ The repository contains three folders:
 [2]Rmd: rmd files;
 [3]Output: png files.
 
-We named the rmd files with our names and dates. And we named the csv and png files with the key information that the files contained. 
+We named the rmd files with our names or a certain type of analysis. And we named the csv and png files with the key information that the files contained. 
 
 ## Metadata
 
@@ -175,13 +175,14 @@ Quality of Life Definition(according to World Bank):
 Total quality of life= 0.15(Stability) + 0.20(Rights) + 0.15(Health) + 0.10(Safety) + .15(Climate) + 0.15(Costs) + re 2).
 
 ## Scripts and code
-1-Datavisualization is for reading in datasets and looking for variables that we are interested in.
+
+1-DataVisualization is for reading in datasets and looking for variables that we are interested in.
 Chen-Thompson-Final is a rough project draft.
 ZhiyuanChen_Team_Assignment is a time series analysis file.
 Chen-Thompson_ENV872_Project is a final project draft.
 
 
 ## Quality assurance/quality control
-Documentation of changes
+
 We retrieved data from reputable sources.
 We checked that there are no missing values for key parameters and scanned for anomalous values.
