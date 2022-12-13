@@ -41,51 +41,137 @@ The repository contains three folders:
 We named the rmd files with our names and dates. And we named the csv and png files with the key information that the files contained. 
 
 ## Metadata
-CO2 Cleaned 
-Variable	Description	Class	Units		
-Country	Country names	Character	NA		
-Code	Country-specific  code	Character	NA		
-year	Year of CO2 emissions	Numeric	year		
-Population 2022	Total population for country in 2022	Numeric	Number of people		
-Area	Size of country	Numeric	km2		
-X of World	Population of country in relation to world population	Character	%		
-Density	Population density of country	Character	km2		
-CO2 emission (tons)	Emissions of CO2 for the given country and year	Numeric	tons		
 
-QoL Cleaned
-Variable	Description	Class	Units
-Rank	Rank of countries from highest quality of life (1) to lowest quality of life (137)	Numeric	NA
-Country	Country name	Character	NA
-Stability 15	Measure of stability, weighted 15%	Numeric	%
-Rights 20	Measure of rights, weighted 20%	Numeric	%
-Health 15	Measure of health, weighted 15%	Numeric	%
-Safety 10	Measure of safety, 10%	Numeric	%
-Climate 15	Measure of climate, weighted 15%	Numeric	%
-Costs 15	Measure of costs, weighted 15%	Numeric	%
-Popularity 10	Measure of popularity, weighted 10%	Numeric	%
-Total Quality of life 100	Sum of all weighted measurements, total quality of life per country	Numeric	%
-Rank 1	?? integer value of country’s rank, from 0-1	Numeric	NA
-Ranking Class	?? integer value of country’s rank as classes	Numeric	NA
+CO2_Cleaned.csv
 
-CO2_QoL_dev
-Variable	Description	Class	Units
-Country	Country name	Character	NA
-DevStatus	Development status of a country	Character	NA
-Year	Year of CO2 emissions	Numeric	year
-Population.2022	Total population for country in 2022	Numeric	Number of people
-Area	Size of country	Numeric	km2
-Percent_of_World	Population of country in relation to world population	Character	%
-Density	Population density of country	Character	km2
-CO2_tons	Emissions of CO2 for the given country and year	Numeric	tons
-Stability 15	Measure of stability, weighted 15%	Numeric	%
-Rights 20	Measure of rights, weighted 20%	Numeric	%
-Health 15	Measure of health, weighted 15%	Numeric	%
-Safety 10	Measure of safety, 10%	Numeric	%
-Climate 15	Measure of climate, weighted 15%	Numeric	%
-Costs 15	Measure of costs, weighted 15%	Numeric	%
-Popularity 10	Measure of popularity, weighted 10%	Numeric	%
-Total Quality of life 100	Sum of all weighted measurements, total quality of life per country	Numeric	%
-Quality of Life Definition(according to World Bank)
+
+Variable:
+Description Class Units	
+
+Country:
+Country names	Character	NA		
+
+Code:	
+Country-specific  code	Character	NA		
+
+year:	
+Year of CO2 emissions	Numeric	year		
+
+Population 
+2022	Total population for country in 2022	Numeric	Number of people		
+
+Area:	
+Size of country	Numeric	km2		
+
+X of World:	
+Population of country in relation to world population	Character	%		
+
+Density:	
+Population density of country	Character	km2		
+
+CO2 emission (tons):	
+Emissions of CO2 for the given country and year	Numeric	tons		
+
+
+QoL_Cleaned.csv
+
+
+Variable:	
+Description	Class	Units
+
+Rank:	
+Rank of countries from highest quality of life (1) to lowest quality of life (137)	Numeric	NA
+
+Country:	
+Country name	Character	NA
+
+Stability 15:	
+Measure of stability, weighted 15%	Numeric	%
+
+Rights 20:	
+Measure of rights, weighted 20%	Numeric	%
+
+Health 15:	
+Measure of health, weighted 15%	Numeric	%
+
+Safety 10:	
+Measure of safety, 10%	Numeric	%
+
+Climate 15:	
+Measure of climate, weighted 15%	Numeric	%
+
+Costs 15:	
+Measure of costs, weighted 15%	Numeric	%
+
+Popularity 10:	
+Measure of popularity, weighted 10%	Numeric	%
+
+Total Quality of life 100:	
+Sum of all weighted measurements, total quality of life per country	Numeric	%
+
+Rank 1:	
+?? integer value of country’s rank, from 0-1	Numeric	NA
+
+Ranking Class:	
+?? integer value of country’s rank as classes	Numeric	NA
+
+
+CO2_QoL_dev.csv
+
+
+Variable:	
+Description	Class	Units
+
+Country:	
+Country name	Character	NA
+
+DevStatus:	
+Development status of a country	Character	NA
+
+Year:	
+Year of CO2 emissions	Numeric	year
+
+Population.2022:	
+Total population for country in 2022	Numeric	Number of people
+
+Area:	
+Size of country	Numeric	km2
+
+Percent_of_World:	
+Population of country in relation to world population	Character	%
+
+Density:	
+Population density of country	Character	km2
+
+CO2_tons:	
+Emissions of CO2 for the given country and year	Numeric	tons
+
+Stability 15:	
+Measure of stability, weighted 15%	Numeric	%
+
+Rights 20:	
+Measure of rights, weighted 20%	Numeric	%
+
+Health 15:	
+Measure of health, weighted 15%	Numeric	%
+
+Safety 10:	
+Measure of safety, 10%	Numeric	%
+
+Climate 15:	
+Measure of climate, weighted 15%	Numeric	%
+
+Costs 15:	
+Measure of costs, weighted 15%	Numeric	%
+
+Popularity 10:	
+Measure of popularity, weighted 10%	Numeric	%
+
+Total Quality of life 100:	
+Sum of all weighted measurements, total quality of life per country	Numeric	%
+
+Quality of Life Definition(according to World Bank):
+
 Total quality of life= 0.15(Stability) + 0.20(Rights) + 0.15(Health) + 0.10(Safety) + .15(Climate) + 0.15(Costs) + re 2).
 
 ## Scripts and code
