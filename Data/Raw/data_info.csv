@@ -1,0 +1,7 @@
+Variables,Units,Ranges,Central tendency(mean),DataSource
+Country,(NA-factor data),NA,NA,QOL_cleaned&CO2_cleaned_restructured
+Year,year,2019,2019,CO2_cleaned_restructured
+Population.2022,number_of_people_in_country,222382-1425887337,57273796.1,CO2_cleaned_restructured
+Density,people/km^2,"2-8,416","23,850.81",CO2_cleaned_restructured
+CO2_tons,tons_of_CO2,0-412000000000,6536577,CO2_cleaned_restructured
+Total_Quality_of_Life,weighted_measurement_defined_below_in_%,30-76,54.516,QOL_cleaned
